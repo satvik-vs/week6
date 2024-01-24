@@ -10,12 +10,18 @@ def send_file(client_socket, file_path):
     file_info = f"{file_name},{file_size}"
     client_socket.send(file_info.encode())
 
-    # Send the file data in chunks
-    with open(file_path, 'rb') as file:
-        for chunk in iter(lambda: file.read(1024), b''):
-            client_socket.send(chunk)
+    # Wait for acknowledgment from the client
+    acknowledgment = client_socket.recv(1024).decode()
 
-    print(f"File '{file_name}' sent to the client. Size: {file_size} bytes")
+    if acknowledgment.lower() == 'ok':
+        # Send the file data in chunks
+        with open(file_path, 'rb') as file:
+            for chunk in iter(lambda: file.read(1024), b''):
+                client_socket.send(chunk)
+
+        print(f"File '{file_name}' sent to the client. Size: {file_size} bytes")
+    else:
+        print("Client did not acknowledge. File transfer aborted.")
 
 def handle_client(client_socket, client_number, clients):
     file_path = "/home/satvik/Pictures/top.png"  # Replace with the path to your binary file
@@ -26,6 +32,9 @@ def handle_client(client_socket, client_number, clients):
     forward_decision = client_socket.recv(1024).decode()
     
     if forward_decision.lower() == 'yes':
+        # Send acknowledgment to the client
+        client_socket.send('OK'.encode())
+
         # Send the list of available clients
         client_socket.send(','.join(clients).encode())
 
