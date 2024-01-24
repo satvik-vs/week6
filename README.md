@@ -1,0 +1,2 @@
+# week6
+WEEK6 CN LAB
